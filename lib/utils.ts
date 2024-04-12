@@ -1,10 +1,10 @@
 /* eslint-disable prefer-const */
 /* eslint-disable no-prototype-builtins */
 import { type ClassValue, clsx } from "clsx";
-import qs from "qs";
 import { twMerge } from "tailwind-merge";
 
 import { aspectRatioOptions } from "@/constants";
+import QueryString from "qs";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -58,9 +58,9 @@ export const formUrlQuery = ({
   key,
   value,
 }: FormUrlQueryParams) => {
-  const params = { ...qs.parse(searchParams.toString()), [key]: value };
+  const params = { ...QueryString.parse(searchParams.toString()), [key]: value };
 
-  return `${window.location.pathname}?${qs.stringify(params, {
+  return `${window.location.pathname}?${QueryString.stringify(params, {
     skipNulls: true,
   })}`;
 };
@@ -70,7 +70,7 @@ export function removeKeysFromQuery({
   searchParams,
   keysToRemove,
 }: RemoveUrlQueryParams) {
-  const currentUrl = qs.parse(searchParams);
+  const currentUrl = QueryString.parse(searchParams);
 
   keysToRemove.forEach((key) => {
     delete currentUrl[key];
@@ -81,7 +81,7 @@ export function removeKeysFromQuery({
     (key) => currentUrl[key] == null && delete currentUrl[key]
   );
 
-  return `${window.location.pathname}?${qs.stringify(currentUrl)}`;
+  return `${window.location.pathname}?${QueryString.stringify(currentUrl)}`;
 }
 
 // DEBOUNCE
