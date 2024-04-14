@@ -32,7 +32,7 @@ import MediaUploader from "./MediaUploader"
 import TransformedImage from "./TransformedImage"
 import { updateCredits } from "@/lib/actions/user.actions"
 import { getCldImageUrl } from "next-cloudinary"
-import { addImage, udpateImage } from "@/lib/actions/image.actions"
+import { addImage, updateImage } from "@/lib/actions/image.actions"
 import { useRouter } from "next/navigation"
 
 export const formSchema = z.object({
@@ -86,7 +86,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
             width: image?.width,
             height: image?.height,
             config: transformationConfig,
-            secureURL: image?.secureUrl,
+            secureURL: image?.secureURL,
             transformationURL: transformationUrl,
             aspectRatio: values.aspectRatio,
             prompt: values.prompt,
@@ -113,7 +113,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
 
         if(action === 'Update') {
             try {
-                const updatedImage = await udpateImage({
+                const updatedImage = await updateImage({
                     image: {
                         ...imageData,
                         _id: data._id
@@ -133,7 +133,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
         }
     }
 
-    setisSubmitting(false)
+    setisSubmitting
   }
 
   const onSelectFieldHandler = (value: string, onChangeField: (value: string) => void) => {
