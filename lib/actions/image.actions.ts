@@ -5,6 +5,13 @@ import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
 import User from "../database/models/user.model";
 import Image from "../database/models/image.model";
+import { redirect } from "next/navigation";
+
+const populateUser = (query: any) => query.populate({
+    path: 'author',
+    model: User,
+    select: '_id firstName lastName'
+})
 
 // ADD IMAGE
 export async function addImage({ image, userId, path }: AddImageParams) {
@@ -60,11 +67,12 @@ export async function deleteImage(imageId: string) {
     try {
         await connectToDatabase();
 
-        revalidatePath(path);
+        await Image.findByIdAndDelete(imageId);
 
-        return JSON.parse(JSON.stringify(image));
     } catch (error) {
         handleError(error)
+    } finally  {
+        redirect('/')
     }
 }
 
@@ -73,7 +81,9 @@ export async function getImageById(imageId: string) {
     try {
         await connectToDatabase();
 
-        revalidatePath(path);
+        const image = await populateUser(Image.findById(imageId))
+
+        if(!image) throw new Error("Image not found")
 
         return JSON.parse(JSON.stringify(image));
     } catch (error) {
