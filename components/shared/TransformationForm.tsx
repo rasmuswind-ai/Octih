@@ -31,6 +31,9 @@ import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils"
 import MediaUploader from "./MediaUploader"
 import TransformedImage from "./TransformedImage"
 import { updateCredits } from "@/lib/actions/user.actions"
+import { getCldImageUrl } from "next-cloudinary"
+import { addImage, udpateImage } from "@/lib/actions/image.actions"
+import { useRouter } from "next/navigation"
 
 export const formSchema = z.object({
   title: z.string(),
@@ -48,6 +51,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     const [isTransforming, setisTransforming] = useState(false);
     const [transformationConfig, settransformationConfig] = useState(config);
     const [isPending, startTransition] = useTransition();
+    const router = useRouter()
     
     const initialValues = data && action === 'Update' ? {
         title: data?.title,
@@ -64,8 +68,72 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
   })
  
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setisSubmitting(true);
+    
+    if(data || image) {
+        const transformationUrl = getCldImageUrl({
+            width: image?.width,
+            height: image?.height,
+            src: image?.publicId,
+            ...transformationConfig
+        })
+
+        const imageData  = {
+            title: values.title,
+            publicId: image?.publicId,
+            transformationType: type,
+            width: image?.width,
+            height: image?.height,
+            config: transformationConfig,
+            secureURL: image?.secureUrl,
+            transformationURL: transformationUrl,
+            aspectRatio: values.aspectRatio,
+            prompt: values.prompt,
+            color: values.color,
+        }
+
+        if(action === 'Add') {
+            try {
+                const newImage = await addImage({
+                    image: imageData,
+                    userId,
+                    path: '/'
+                })
+
+                if(newImage) {
+                    form.reset()
+                    setImage(data)
+                    router.push(`/transformations/${newImage._id}`)
+                }
+            } catch {
+                console.log(Error)
+            }
+        }
+
+        if(action === 'Update') {
+            try {
+                const updatedImage = await udpateImage({
+                    image: {
+                        ...imageData,
+                        _id: data._id
+                    },
+                    userId,
+                    path: `/transformations/${data._id}`
+                })
+
+                if(updatedImage) {
+                    form.reset()
+                    setImage(data)
+                    router.push(`/transformations/${updatedImage._id}`)
+                }
+            } catch {
+                console.log(Error)
+            }
+        }
+    }
+
+    setisSubmitting(false)
   }
 
   const onSelectFieldHandler = (value: string, onChangeField: (value: string) => void) => {
